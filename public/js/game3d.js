@@ -687,91 +687,104 @@ const Game3D = {
     group.classList.add('clickable');
     group.classList.add('piece-3d');
 
-    if (isKing) {
-      // ═══════════════════════════════════════════════════════
-      // [ข้อ 4] โมเดลฮอส (King) ทรงสูง 2 ชั้น พร้อมมงกุฎทองคำ
-      // ═══════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════════════════
+    // [แก้ปัญหา iPhone / iOS WebKit] สร้างตัวหมากด้วย Three.js Mesh โดยตรง
+    // ทำให้แสดงผลทันที 100% ทั้งบน iOS (Safari) และ Android (Chrome)
+    // ═══════════════════════════════════════════════════════════════════════════
+    const pieceGroup = new THREE.Group();
 
-      // 1. Invisible Hit Collider ครอบสูงขึ้นเพื่อให้แตะติดง่ายบนจอมือถือ
-      const hitCollider = document.createElement('a-cylinder');
-      hitCollider.setAttribute('radius', `${this.pieceRadius * 1.35}`);
-      hitCollider.setAttribute('height', '0.075');
-      hitCollider.setAttribute('position', '0 -0.010 0');
-      hitCollider.setAttribute('material', 'visible: false; opacity: 0; transparent: true');
-      hitCollider.classList.add('clickable');
-      hitCollider.classList.add('piece-collider');
-      group.appendChild(hitCollider);
+    if (isKing) {
+      // ─────────────────────────────────────────────────────────────
+      // [ข้อ 4] โมเดลฮอส (King) ทรงสูง 2 ชั้น พร้อมมงกุฎทองคำ
+      // ─────────────────────────────────────────────────────────────
+
+      // 1. Invisible Hit Collider ครอบสูงขึ้นเพื่อให้แตะติดง่าย
+      const hitGeom = new THREE.CylinderGeometry(this.pieceRadius * 1.35, this.pieceRadius * 1.35, 0.075, 16);
+      const hitMat = new THREE.MeshBasicMaterial({ visible: false, transparent: true, opacity: 0 });
+      const hitMesh = new THREE.Mesh(hitGeom, hitMat);
+      hitMesh.position.set(0, -0.010, 0);
+      pieceGroup.add(hitMesh);
 
       // 2. ฐานชั้นล่าง (Tier 1 Cylinder)
-      const tier1 = document.createElement('a-cylinder');
-      tier1.setAttribute('radius', `${this.pieceRadius}`);
-      tier1.setAttribute('height', '0.016');
-      tier1.setAttribute('position', '0 0.006 0');
-      if (isWhite) {
-        tier1.setAttribute('material', 'color: #ffffff; roughness: 0.15; metalness: 0.55; side: double');
-      } else {
-        tier1.setAttribute('material', 'color: #0b0f19; roughness: 0.15; metalness: 0.65; side: double');
-      }
-      group.appendChild(tier1);
+      const t1Geom = new THREE.CylinderGeometry(this.pieceRadius, this.pieceRadius, 0.016, 32);
+      const t1Mat = new THREE.MeshStandardMaterial({
+        color: isWhite ? 0xffffff : 0x0b0f19,
+        roughness: 0.15,
+        metalness: isWhite ? 0.55 : 0.65,
+        side: THREE.DoubleSide
+      });
+      const t1Mesh = new THREE.Mesh(t1Geom, t1Mat);
+      t1Mesh.position.set(0, 0.006, 0);
+      pieceGroup.add(t1Mesh);
 
       // 3. ขอบวงแหวนทองคั่นระหว่างชั้น 1 และชั้น 2
-      const midRing = document.createElement('a-torus');
-      midRing.setAttribute('position', '0 -0.002 0');
-      midRing.setAttribute('rotation', '90 0 0');
-      midRing.setAttribute('radius', `${this.pieceRadius * 0.88}`);
-      midRing.setAttribute('radius-tubular', '0.0025');
-      midRing.setAttribute('material', 'color: #fbbf24; roughness: 0.1; metalness: 0.95; emissive: #d97706; emissiveIntensity: 0.35; side: double');
-      group.appendChild(midRing);
+      const midGeom = new THREE.TorusGeometry(this.pieceRadius * 0.88, 0.0025, 16, 32);
+      const goldMat = new THREE.MeshStandardMaterial({
+        color: 0xfbbf24,
+        roughness: 0.1,
+        metalness: 0.95,
+        emissive: 0xd97706,
+        emissiveIntensity: 0.35,
+        side: THREE.DoubleSide
+      });
+      const midMesh = new THREE.Mesh(midGeom, goldMat);
+      midMesh.rotation.x = Math.PI / 2;
+      midMesh.position.set(0, -0.002, 0);
+      pieceGroup.add(midMesh);
 
       // 4. ชั้นบนซ้อนชั้นสอง (Tier 2 Cylinder)
-      const tier2 = document.createElement('a-cylinder');
-      tier2.setAttribute('radius', `${this.pieceRadius * 0.82}`);
-      tier2.setAttribute('height', '0.014');
-      tier2.setAttribute('position', '0 -0.009 0');
-      if (isWhite) {
-        tier2.setAttribute('material', 'color: #f8fafc; roughness: 0.15; metalness: 0.6; side: double');
-      } else {
-        tier2.setAttribute('material', 'color: #1e293b; roughness: 0.15; metalness: 0.7; side: double');
-      }
-      group.appendChild(tier2);
+      const t2Geom = new THREE.CylinderGeometry(this.pieceRadius * 0.82, this.pieceRadius * 0.82, 0.014, 32);
+      const t2Mat = new THREE.MeshStandardMaterial({
+        color: isWhite ? 0xf8fafc : 0x1e293b,
+        roughness: 0.15,
+        metalness: isWhite ? 0.6 : 0.7,
+        side: THREE.DoubleSide
+      });
+      const t2Mesh = new THREE.Mesh(t2Geom, t2Mat);
+      t2Mesh.position.set(0, -0.009, 0);
+      pieceGroup.add(t2Mesh);
 
       // 5. ฐานมงกุฎทองรอบฝาชั้นบน (Crown Rim Torus)
-      const crownRim = document.createElement('a-torus');
-      crownRim.setAttribute('position', '0 -0.016 0');
-      crownRim.setAttribute('rotation', '90 0 0');
-      crownRim.setAttribute('radius', `${this.pieceRadius * 0.68}`);
-      crownRim.setAttribute('radius-tubular', '0.003');
-      crownRim.setAttribute('material', 'color: #fbbf24; roughness: 0.1; metalness: 0.95; emissive: #f59e0b; emissiveIntensity: 0.45; side: double');
-      group.appendChild(crownRim);
+      const crownGeom = new THREE.TorusGeometry(this.pieceRadius * 0.68, 0.003, 16, 32);
+      const crownMesh = new THREE.Mesh(crownGeom, goldMat);
+      crownMesh.rotation.x = Math.PI / 2;
+      crownMesh.position.set(0, -0.016, 0);
+      pieceGroup.add(crownMesh);
 
-      // 6. ยอดมงกุฎกรวยทองคำ 4 ยอด (4 Crown Spike Cones)
+      // 6. ยอดมงกุฎกรวยทองคำ 4 ยอด (4 Crown Cones)
       const spikeRadius = this.pieceRadius * 0.52;
+      const spikeGeom = new THREE.ConeGeometry(0.004, 0.010, 16);
+      const spikeMat = new THREE.MeshStandardMaterial({
+        color: 0xf59e0b,
+        roughness: 0.1,
+        metalness: 0.9,
+        emissive: 0xd97706,
+        emissiveIntensity: 0.35,
+        side: THREE.DoubleSide
+      });
       for (let i = 0; i < 4; i++) {
         const ang = (i * Math.PI) / 2;
         const sx = spikeRadius * Math.cos(ang);
         const sz = spikeRadius * Math.sin(ang);
-        const spike = document.createElement('a-cone');
-        spike.setAttribute('position', `${sx} -0.021 ${sz}`);
-        spike.setAttribute('rotation', '180 0 0'); // ยอดแหลมหันหากล้อง (-Y)
-        spike.setAttribute('radius-bottom', '0.004');
-        spike.setAttribute('radius-top', '0');
-        spike.setAttribute('height', '0.010');
-        spike.setAttribute('material', 'color: #f59e0b; roughness: 0.1; metalness: 0.9; emissive: #d97706; emissiveIntensity: 0.35; side: double');
-        group.appendChild(spike);
+        const spikeMesh = new THREE.Mesh(spikeGeom, spikeMat);
+        spikeMesh.position.set(sx, -0.021, sz);
+        spikeMesh.rotation.x = Math.PI; // ยอดแหลมหันหากล้อง (-Y)
+        pieceGroup.add(spikeMesh);
       }
 
       // 7. เม็ดอัญมณียอดมงกุฎตรงกลาง (Center Royal Gem Orb)
-      const gem = document.createElement('a-sphere');
-      gem.setAttribute('position', '0 -0.020 0');
-      gem.setAttribute('radius', '0.0055');
-      if (isWhite) {
-        // ฮอสขาว: ประดับเพชรทองสว่างสดใส
-        gem.setAttribute('material', 'color: #fef08a; emissive: #facc15; emissiveIntensity: 0.85; roughness: 0.1; metalness: 0.7; side: double');
-      } else {
-        // ฮอสดำ: ประดับทับทิมเพลิงสีแดงเข้มสง่างาม
-        gem.setAttribute('material', 'color: #ef4444; emissive: #dc2626; emissiveIntensity: 0.85; roughness: 0.1; metalness: 0.7; side: double');
-      }
-      group.appendChild(gem);
+      const gemGeom = new THREE.SphereGeometry(0.0055, 16, 16);
+      const gemMat = new THREE.MeshStandardMaterial({
+        color: isWhite ? 0xfef08a : 0xef4444,
+        emissive: isWhite ? 0xfacc15 : 0xdc2626,
+        emissiveIntensity: 0.85,
+        roughness: 0.1,
+        metalness: 0.7,
+        side: THREE.DoubleSide
+      });
+      const gemMesh = new THREE.Mesh(gemGeom, gemMat);
+      gemMesh.position.set(0, -0.020, 0);
+      pieceGroup.add(gemMesh);
 
       // 8. สัญลักษณ์มงกุฎลอยเรืองแสง (Floating Royal Crown ♔)
       const crownSymbol = document.createElement('a-text');
@@ -785,41 +798,43 @@ const Game3D = {
       group.appendChild(crownSymbol);
 
     } else {
-      // ═══════════════════════════════════════════════════════
+      // ─────────────────────────────────────────────────────────────
       // เบี้ยธรรมดา (Single Tier Pawn)
-      // ═══════════════════════════════════════════════════════
+      // ─────────────────────────────────────────────────────────────
 
-      const hitCollider = document.createElement('a-cylinder');
-      hitCollider.setAttribute('radius', `${this.pieceRadius * 1.35}`);
-      hitCollider.setAttribute('height', `${this.pieceHeight * 2.5}`);
-      hitCollider.setAttribute('material', 'visible: false; opacity: 0; transparent: true');
-      hitCollider.classList.add('clickable');
-      hitCollider.classList.add('piece-collider');
-      group.appendChild(hitCollider);
+      // 1. Invisible Hit Collider
+      const hitGeom = new THREE.CylinderGeometry(this.pieceRadius * 1.35, this.pieceRadius * 1.35, this.pieceHeight * 2.5, 16);
+      const hitMat = new THREE.MeshBasicMaterial({ visible: false, transparent: true, opacity: 0 });
+      const hitMesh = new THREE.Mesh(hitGeom, hitMat);
+      pieceGroup.add(hitMesh);
 
-      // ทรงกระบอกตัวหมากหลัก
-      const cyl = document.createElement('a-cylinder');
-      cyl.setAttribute('radius', `${this.pieceRadius}`);
-      cyl.setAttribute('height', `${this.pieceHeight}`);
-      if (isWhite) {
-        cyl.setAttribute('material', 'color: #f8fafc; roughness: 0.25; metalness: 0.35; side: double');
-      } else {
-        cyl.setAttribute('material', 'color: #0f172a; roughness: 0.3; metalness: 0.4; side: double');
-      }
-      group.appendChild(cyl);
+      // 2. ทรงกระบอกตัวหมากหลัก
+      const cylGeom = new THREE.CylinderGeometry(this.pieceRadius, this.pieceRadius, this.pieceHeight, 32);
+      const cylMat = new THREE.MeshStandardMaterial({
+        color: isWhite ? 0xf8fafc : 0x0f172a,
+        roughness: isWhite ? 0.25 : 0.3,
+        metalness: isWhite ? 0.35 : 0.4,
+        side: THREE.DoubleSide
+      });
+      const cylMesh = new THREE.Mesh(cylGeom, cylMat);
+      pieceGroup.add(cylMesh);
 
-      // ขอบวงแหวนนูนบนผิวหมาก
-      const rim = document.createElement('a-torus');
-      rim.setAttribute('position', `0 ${-this.pieceHeight / 2} 0`);
-      rim.setAttribute('rotation', '90 0 0');
-      rim.setAttribute('radius', `${this.pieceRadius * 0.75}`);
-      rim.setAttribute('radius-tubular', '0.0035');
-      rim.setAttribute('material', isWhite 
-        ? 'color: #cbd5e1; roughness: 0.2; metalness: 0.5; side: double' 
-        : 'color: #334155; roughness: 0.2; metalness: 0.6; side: double'
-      );
-      group.appendChild(rim);
+      // 3. ขอบวงแหวนนูนบนผิวหมาก
+      const rimGeom = new THREE.TorusGeometry(this.pieceRadius * 0.75, 0.0035, 16, 32);
+      const rimMat = new THREE.MeshStandardMaterial({
+        color: isWhite ? 0xcbd5e1 : 0x334155,
+        roughness: 0.2,
+        metalness: isWhite ? 0.5 : 0.6,
+        side: THREE.DoubleSide
+      });
+      const rimMesh = new THREE.Mesh(rimGeom, rimMat);
+      rimMesh.rotation.x = Math.PI / 2;
+      rimMesh.position.set(0, -this.pieceHeight / 2, 0);
+      pieceGroup.add(rimMesh);
     }
+
+    // ติดตั้ง Three.js Mesh Tree เข้ากับ A-Frame Entity
+    group.setObject3D('mesh', pieceGroup);
 
     // คลิกที่ตัวหมาก (A-Frame event fallback)
     group.addEventListener('click', (e) => {
@@ -828,18 +843,30 @@ const Game3D = {
     });
 
     // ── วงแหวนเรืองแสงสำหรับไฮไลต์เมื่อเลือก (รอบฐานหมาก) ──
-    const glowRing = document.createElement('a-torus');
-    glowRing.setAttribute('position', '0 0.010 0');
-    glowRing.setAttribute('rotation', '90 0 0');
-    glowRing.setAttribute('radius', `${this.pieceRadius * 1.15}`);
-    glowRing.setAttribute('radius-tubular', '0.006');
-    glowRing.setAttribute('material', 'color: #fbbf24; emissive: #fbbf24; emissiveIntensity: 1.2; roughness: 0.1; metalness: 0.5; transparent: true; opacity: 0; side: double');
-    glowRing.setAttribute('visible', 'false');
+    const glowRing = document.createElement('a-entity');
     glowRing.classList.add('selection-glow-ring');
+    glowRing.setAttribute('visible', 'false');
+
+    const glowGeom = new THREE.TorusGeometry(this.pieceRadius * 1.15, 0.006, 16, 32);
+    const glowMat = new THREE.MeshStandardMaterial({
+      color: 0xfbbf24,
+      emissive: 0xfbbf24,
+      emissiveIntensity: 1.2,
+      roughness: 0.1,
+      metalness: 0.5,
+      transparent: true,
+      opacity: 0,
+      side: THREE.DoubleSide
+    });
+    const glowMesh = new THREE.Mesh(glowGeom, glowMat);
+    glowMesh.rotation.x = Math.PI / 2;
+    glowMesh.position.set(0, 0.010, 0);
+    glowRing.setObject3D('mesh', glowMesh);
     group.appendChild(glowRing);
 
     return group;
   },
+
 
   /** จัดการเมื่อผู้เล่นคลิกที่ตัวหมาก */
   handlePieceClick(r, c) {
@@ -990,14 +1017,26 @@ const Game3D = {
       const entity = this.pieceEntities[key];
       if (!entity) return;
 
-      // สร้างวงแหวนสีส้มซ้อนทับแผ่นพื้นกระดาน
-      const captureRing = document.createElement('a-torus');
-      captureRing.setAttribute('position', `0 ${-this.pieceHeight / 2 - 0.004} 0`);
-      captureRing.setAttribute('rotation', '90 0 0');
-      captureRing.setAttribute('radius', `${this.pieceRadius * 1.3}`);
-      captureRing.setAttribute('radius-tubular', '0.007');
-      captureRing.setAttribute('material', 'color: #f97316; emissive: #f97316; emissiveIntensity: 1.5; roughness: 0.1; metalness: 0.4; transparent: true; opacity: 0.9; side: double');
+      // สร้างวงแหวนสีส้มซ้อนทับแผ่นพื้นกระดาน (Three.js Mesh รองรับ iOS/Safari)
+      const captureRing = document.createElement('a-entity');
       captureRing.classList.add('capture-hint-ring');
+
+      const capGeom = new THREE.TorusGeometry(this.pieceRadius * 1.3, 0.007, 16, 32);
+      const capMat = new THREE.MeshStandardMaterial({
+        color: 0xf97316,
+        emissive: 0xf97316,
+        emissiveIntensity: 1.5,
+        roughness: 0.1,
+        metalness: 0.4,
+        transparent: true,
+        opacity: 0.9,
+        side: THREE.DoubleSide
+      });
+      const capMesh = new THREE.Mesh(capGeom, capMat);
+      capMesh.rotation.x = Math.PI / 2;
+      capMesh.position.set(0, -this.pieceHeight / 2 - 0.004, 0);
+      captureRing.setObject3D('mesh', capMesh);
+
       entity.appendChild(captureRing);
       this._captureHintEntities.push(captureRing);
     });
@@ -1061,15 +1100,27 @@ const Game3D = {
       hl.classList.add('target-highlight');
 
       // สีต่างกัน: กิน = สีส้ม, เดิน = สีเขียว
-      const dotColor = isCapture ? '#f97316' : '#22c55e';
-      const dotEmissive = isCapture ? '#f97316' : '#22c55e';
+      const dotColor = isCapture ? 0xf97316 : 0x22c55e;
+      const dotEmissive = isCapture ? 0xf97316 : 0x22c55e;
 
-      // แผ่นวงกลมเรืองแสง
-      const visualCyl = document.createElement('a-cylinder');
-      visualCyl.setAttribute('radius', `${this.pieceRadius * 0.95}`);
-      visualCyl.setAttribute('height', '0.003');
-      visualCyl.setAttribute('material', `color: ${dotColor}; opacity: 0.9; emissive: ${dotEmissive}; emissiveIntensity: 0.7; side: double`);
-      hl.appendChild(visualCyl);
+      // แผ่นวงกลมเรืองแสงด้วย Three.js Mesh
+      const visualGeom = new THREE.CylinderGeometry(this.pieceRadius * 0.95, this.pieceRadius * 0.95, 0.003, 32);
+      const visualMat = new THREE.MeshStandardMaterial({
+        color: dotColor,
+        opacity: 0.9,
+        emissive: dotEmissive,
+        emissiveIntensity: 0.7,
+        transparent: true,
+        side: THREE.DoubleSide
+      });
+      const visualMesh = new THREE.Mesh(visualGeom, visualMat);
+      hl.setObject3D('mesh', visualMesh);
+
+      // Invisible Hit Collider สำหรับช่องไฮไลต์
+      const hitGeom = new THREE.CylinderGeometry(this.pieceRadius * 1.35, this.pieceRadius * 1.35, 0.04, 16);
+      const hitMat = new THREE.MeshBasicMaterial({ visible: false, transparent: true, opacity: 0 });
+      const hitMesh = new THREE.Mesh(hitGeom, hitMat);
+      hl.setObject3D('hit', hitMesh);
 
       // ถ้าเป็นการกิน เพิ่มเครื่องหมาย 'X' ไว้เหนือจุด
       if (isCapture) {
