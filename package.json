@@ -1,0 +1,25 @@
+{
+  "name": "ar-checkers-online",
+  "version": "1.0.0",
+  "description": "AR Checkers Online — เกมหมากฮอสออนไลน์ 2 ผู้เล่น ผ่าน WebAR",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "test": "node --test server/game/rules.test.js",
+    "test:e2e": "node test-matchmaking.js"
+  },
+  "keywords": [
+    "checkers",
+    "ar",
+    "webar",
+    "socket.io",
+    "a-frame"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "express": "^5.2.1",
+    "socket.io": "^4.8.4",
+    "socket.io-client": "^4.8.4"
+  }
+}

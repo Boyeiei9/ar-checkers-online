@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: ar-checkers-online
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server/index.js
+    envVars:
+      - key: NODE_ENV
+        value: production

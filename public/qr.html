@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AR Checkers Online — หน้าฉายโปรเจกเตอร์ห้องเรียน (QR Code)</title>
+  <meta name="description" content="สแกน QR Code เพื่อเข้าเล่นเกมหมากฮอสออนไลน์ AR Checkers Online สำหรับเพื่อนในห้องเรียน">
+  <link rel="stylesheet" href="css/style.css">
+  <!-- QR Code Generator Library -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <style>
+    body {
+      padding: 24px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .presentation-card {
+      width: 100%;
+      max-width: 680px;
+      background: rgba(30, 41, 59, 0.9);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 24px;
+      padding: 36px 32px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      animation: fadeIn 0.4s ease-out;
+    }
+    .qr-wrapper {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 20px;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0 auto;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+    #qrcode-canvas img, #qrcode-canvas canvas {
+      display: block;
+      margin: 0 auto;
+    }
+    .url-chip {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 10px 18px;
+      border-radius: 999px;
+      font-family: monospace;
+      font-size: 1.05rem;
+      color: var(--accent);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      max-width: 100%;
+      word-break: break-all;
+    }
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 8px;
+    }
+    .step-box {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #0b1120;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+    }
+    .step-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #fff;
+    }
+    .step-desc {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.35;
+    }
+    .url-customizer {
+      display: flex;
+      gap: 8px;
+      max-width: 480px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    @media (max-width: 600px) {
+      .steps-grid {
+        grid-template-columns: 1fr;
+      }
+      .presentation-card {
+        padding: 24px 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="presentation-card">
+    <header>
+      <div class="brand-badge">🎓 โครงงานวิชาวิทยาการคอมพิวเตอร์</div>
+      <h1 style="font-size: 2.1rem; margin-top: 6px;">AR Checkers Online</h1>
+      <p class="subtitle" style="font-size: 1.05rem;">
+        เกมหมากฮอสไทยออนไลน์ 2 ผู้เล่นผ่าน WebAR • ชวนเพื่อนทุกคนสแกนร่วมสนุกพร้อมกัน!
+      </p>
+    </header>
+
+    <!-- QR Code Container -->
+    <div>
+      <div class="qr-wrapper">
+        <div id="qrcode-canvas"></div>
+      </div>
+      <div style="margin-top: 14px;">
+        <span class="url-chip" id="text-current-url">http://...</span>
+      </div>
+    </div>
+
+    <!-- URL Customizer (สำหรับเปลี่ยน URL เมื่อต่อ Ngrok หรือ Deploy HTTPS) -->
+    <div class="url-customizer">
+      <input type="text" id="input-custom-url" placeholder="เปลี่ยน URL (เช่น https://my-checkers.onrender.com)">
+      <button id="btn-update-qr" class="btn btn-primary" style="white-space: nowrap; padding: 10px 16px;">
+        อัปเดต QR
+      </button>
+    </div>
+
+    <!-- ขั้นตอนการเล่น 3 ขั้น -->
+    <div class="steps-grid">
+      <div class="step-box">
+        <div class="step-num">1</div>
+        <div class="step-title">สแกน QR Code</div>
+        <div class="step-desc">เปิดกล้องมือถือสแกน ไม่ต้องติดตั้งแอปใดๆ เล่นผ่านเว็บได้ทันที</div>
+      </div>
+      <div class="step-box">
+        <div class="step-num">2</div>
+        <div class="step-title">ตั้งชื่อ & จับคู่</div>
+        <div class="step-desc">พิมพ์ชื่อของคุณแล้วกด "⚡ จับคู่ด่วน" ระบบจะจับคู่แข่งในห้องเรียน</div>
+      </div>
+      <div class="step-box">
+        <div class="step-num">3</div>
+        <div class="step-title">เริ่มดวลหมากฮอส</div>
+        <div class="step-desc">เล่นได้ทั้งแบบ 3D ลอยกลางจอ หรือเปิดกล้อง AR ส่องมาร์กเกอร์บนโต๊ะ</div>
+      </div>
+    </div>
+
+    <!-- ปุ่มลิงก์ลัด -->
+    <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+      <a href="/slides.html" class="btn btn-primary" style="padding: 10px 20px; background: linear-gradient(135deg, #a855f7, #7c3aed);">
+        📊 สไลด์นำเสนอ
+      </a>
+      <a href="/" class="btn btn-primary" style="padding: 10px 20px;">
+        🎮 เข้าสู่หน้าเกม
+      </a>
+      <a href="assets/marker.png" target="_blank" class="btn btn-secondary" style="padding: 10px 20px;">
+        🖼️ เปิดภาพมาร์กเกอร์ AR
+      </a>
+    </div>
+  </div>
+
+  <script>
+    let qrcode = null;
+
+    function renderQR(targetUrl) {
+      const container = document.getElementById('qrcode-canvas');
+      container.innerHTML = '';
+
+      qrcode = new QRCode(container, {
+        text: targetUrl,
+        width: 220,
+        height: 220,
+        colorDark: "#0f172a",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.M
+      });
+
+      document.getElementById('text-current-url').textContent = targetUrl;
+      document.getElementById('input-custom-url').value = targetUrl;
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      // ดึง URL หน้าแรกของเซิร์ฟเวอร์
+      const defaultUrl = window.location.origin + '/';
+      renderQR(defaultUrl);
+
+      document.getElementById('btn-update-qr').addEventListener('click', () => {
+        const val = document.getElementById('input-custom-url').value.trim();
+        if (val) {
+          renderQR(val);
+        }
+      });
+
+      document.getElementById('input-custom-url').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          document.getElementById('btn-update-qr').click();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

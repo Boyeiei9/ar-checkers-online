@@ -1,0 +1,887 @@
+:root {
+  --bg-color: #0b1120;
+  --panel-bg: rgba(23, 32, 54, 0.88);
+  --accent: #38bdf8;
+  --accent-glow: rgba(56, 189, 248, 0.4);
+  --accent-hover: #0284c7;
+  --danger: #ef4444;
+  --danger-hover: #dc2626;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --board-light: #cbd5e1;
+  --board-dark: #334155;
+  --white-piece: #f8fafc;
+  --white-piece-border: #94a3b8;
+  --black-piece: #1e293b;
+  --black-piece-border: #020617;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: radial-gradient(circle at 50% 20%, #1e293b, var(--bg-color));
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  overflow-x: hidden;
+}
+
+/* Glass Panel Container */
+.container {
+  width: 100%;
+  max-width: 460px;
+  background: var(--panel-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 22px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Header */
+header {
+  text-align: center;
+  position: relative;
+}
+
+.brand-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  background: rgba(56, 189, 248, 0.15);
+  color: var(--accent);
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  margin-bottom: 6px;
+}
+
+h1 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #ffffff 40%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+body.in-game #main-header {
+  display: none !important;
+}
+
+/* Forms & Inputs */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+}
+
+.input-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.char-counter {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+input[type="text"] {
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 1.5px solid #334155;
+  background: #0f172a;
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 500;
+  outline: none;
+  transition: all 0.2s ease;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+input[type="text"]:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow), inset 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* Buttons */
+.btn {
+  padding: 13px 20px;
+  border-radius: 12px;
+  border: none;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #38bdf8, #0284c7);
+  color: #04111d;
+  box-shadow: 0 4px 15px rgba(56, 189, 248, 0.35);
+}
+.btn-primary:hover {
+  box-shadow: 0 6px 20px rgba(56, 189, 248, 0.5);
+  filter: brightness(1.06);
+}
+
+.btn-pulse {
+  animation: pulseGlow 2s infinite;
+}
+
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.5); }
+  70% { box-shadow: 0 0 0 14px rgba(56, 189, 248, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  color: white;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+.btn-danger:hover {
+  filter: brightness(1.1);
+}
+
+.btn-secondary {
+  background: #334155;
+  color: #f1f5f9;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.btn-secondary:hover {
+  background: #475569;
+}
+
+/* Live Stats Strip */
+.stats-strip {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stat-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 6px var(--success);
+}
+
+/* Views */
+.view {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Profile Bar in Lobby */
+.user-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 12px 16px;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #38bdf8, #818cf8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.user-info {
+  flex: 1;
+  margin-left: 12px;
+}
+
+.user-name {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #fff;
+}
+
+.user-role {
+  font-size: 0.75rem;
+  color: var(--accent);
+}
+
+.btn-icon {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px;
+  font-size: 0.9rem;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+.btn-icon:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Radar Search Animation in Queue View */
+.radar-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 28px 0;
+  gap: 16px;
+}
+
+.radar-circle {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+}
+
+.radar-circle::before,
+.radar-circle::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 1.5px solid var(--accent);
+  animation: radarWave 2s infinite cubic-bezier(0.2, 0.6, 0.4, 1);
+}
+
+.radar-circle::after {
+  animation-delay: 1s;
+}
+
+@keyframes radarWave {
+  0% { width: 90px; height: 90px; opacity: 0.8; }
+  100% { width: 180px; height: 180px; opacity: 0; }
+}
+
+.queue-timer {
+  font-family: monospace;
+  font-size: 1.1rem;
+  color: var(--accent);
+  background: rgba(56, 189, 248, 0.1);
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(56, 189, 248, 0.2);
+}
+
+/* In-Game Header & Statuses */
+.match-header {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+
+.match-players {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.player-tag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.piece-badge {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.piece-badge.white {
+  background: var(--white-piece);
+  color: #0f172a;
+  border: 2px solid var(--white-piece-border);
+}
+
+.piece-badge.black {
+  background: var(--black-piece);
+  color: #fff;
+  border: 2px solid var(--black-piece-border);
+}
+
+.score-badge {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+/* Status Bar & Alert Badges */
+.status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 8px;
+}
+
+.turn-pill {
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: 0.2px;
+  transition: all 0.25s ease;
+}
+
+.turn-pill.my-turn {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: #f0fdf4;
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.4);
+  animation: turnPulse 1.8s infinite;
+}
+
+@keyframes turnPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
+.turn-pill.opp-turn {
+  background: #334155;
+  color: #cbd5e1;
+}
+
+.turn-pill.must-capture {
+  background: linear-gradient(135deg, #ea580c, #dc2626);
+  color: #fff;
+  box-shadow: 0 0 14px rgba(234, 88, 12, 0.6);
+  animation: warningFlash 1s infinite alternate;
+}
+
+@keyframes warningFlash {
+  from { filter: brightness(1); }
+  to { filter: brightness(1.25); }
+}
+
+/* 3D Scene Wrapper */
+.scene-3d-container {
+  width: 100%;
+  max-width: 410px;
+  aspect-ratio: 1 / 1;
+  background: radial-gradient(circle at 50% 50%, #1e293b, #090d16);
+  border: 3px solid #334155;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  position: relative;
+}
+
+.scene-3d-container a-scene {
+  width: 100% !important;
+  height: 100% !important;
+  position: absolute !important;
+  top: 0;
+  left: 0;
+}
+
+/* Mode Switcher Group */
+.mode-switch-group {
+  display: flex;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.mode-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mode-btn.active {
+  background: var(--accent);
+  color: #04111d;
+  box-shadow: 0 2px 8px rgba(56, 189, 248, 0.4);
+}
+
+.mode-btn:hover:not(.active) {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* AR Floating Tracker Status */
+.ar-status-pill {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  color: #38bdf8;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  z-index: 20;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  animation: fadeIn 0.2s ease;
+}
+
+.ar-status-pill.tracking {
+  border-color: #22c55e;
+  color: #4ade80;
+  background: rgba(15, 23, 42, 0.92);
+}
+
+/* Marker Preview Modal */
+.marker-img-box {
+  background: #ffffff;
+  padding: 12px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+.marker-img-box img {
+  width: 100%;
+  max-width: 240px;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
+/* 2D Board Display */
+.board-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.checker-board {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(8, 1fr);
+  width: 100%;
+  max-width: 390px;
+  aspect-ratio: 1 / 1;
+  background: #0f172a;
+  border: 4px solid #1e293b;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+}
+
+.square {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.square.light {
+  background-color: var(--board-light);
+}
+
+.square.dark {
+  background-color: var(--board-dark);
+}
+
+.square.selected {
+  background-color: #38bdf8 !important;
+}
+
+.square.must-capture-piece {
+  box-shadow: inset 0 0 0 3px #f97316;
+}
+
+.square.valid-target {
+  background-color: #22c55e !important;
+}
+
+.square.valid-target::after {
+  content: '';
+  width: 16px;
+  height: 16px;
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: 50%;
+  animation: popTarget 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+@keyframes popTarget {
+  0% { transform: scale(0); }
+  100% { transform: scale(1); }
+}
+
+/* Pieces */
+.piece {
+  width: 78%;
+  height: 78%;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.45);
+  font-weight: bold;
+  font-size: 1.1rem;
+  position: relative;
+  transition: transform 0.15s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+.piece:hover {
+  transform: scale(1.12);
+}
+
+.piece.white {
+  background: radial-gradient(circle at 35% 35%, #ffffff, #cbd5e1);
+  color: #1e293b;
+  border: 2.5px solid var(--white-piece-border);
+}
+
+.piece.black {
+  background: radial-gradient(circle at 35% 35%, #475569, #090d16);
+  color: #f8fafc;
+  border: 2.5px solid var(--black-piece-border);
+}
+
+.piece.king::before {
+  content: '👑';
+  font-size: 0.9rem;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5));
+}
+
+/* Floating Alerts / Notifications */
+.notification {
+  padding: 11px 16px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  text-align: center;
+  animation: slideDown 0.25s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.notification.info {
+  background: rgba(56, 189, 248, 0.16);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #38bdf8;
+}
+
+.notification.warning {
+  background: rgba(239, 68, 68, 0.16);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #f87171;
+}
+
+/* Modals */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(4, 8, 17, 0.78);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 16px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content {
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 18px;
+  padding: 24px;
+  max-width: 420px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.65);
+}
+
+.modal-title {
+  font-size: 1.35rem;
+  color: #fff;
+  font-weight: 700;
+}
+
+.rules-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 340px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.rule-card {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.rule-icon {
+  font-size: 1.3rem;
+  line-height: 1;
+  padding-top: 2px;
+}
+
+.rule-text h4 {
+  font-size: 0.9rem;
+  color: #38bdf8;
+  margin-bottom: 3px;
+}
+
+.rule-text p {
+  font-size: 0.82rem;
+  color: #cbd5e1;
+  line-height: 1.4;
+}
+
+/* ──────────────────────────────────────────────
+ * WebAR Fullscreen & Transparent Canvas Styling
+ * ────────────────────────────────────────────── */
+
+/* Hide default A-Frame VR buttons */
+.a-enter-vr, .a-enter-ar {
+  display: none !important;
+}
+
+/* Make canvas transparent so video is seen */
+.a-canvas {
+  background-color: transparent !important;
+  z-index: 2 !important;
+}
+
+/* MindAR Video element */
+video {
+  z-index: 0 !important;
+  object-fit: cover !important;
+}
+
+/* In AR mode, make container and backgrounds transparent */
+body.ar-active {
+  background: transparent !important;
+}
+
+body.ar-active .container {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  max-width: 100% !important;
+  height: 100vh !important;
+  padding: 0 !important;
+  pointer-events: none !important;
+}
+
+body.ar-active #view-game {
+  pointer-events: none !important;
+}
+
+body.ar-active .scene-3d-container {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: 100% !important;
+  aspect-ratio: auto !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  z-index: 1 !important;
+  pointer-events: none !important;
+}
+
+/* Canvas ของ MindAR & A-Frame ต้องรับทัช/คลิกได้ 100% */
+body.ar-active a-scene,
+body.ar-active a-scene canvas {
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+}
+
+/* ป้ายสถานะส่องมาร์กเกอร์ ลอยอยู่ขอบบนสุด (คลิกทะลุได้) */
+body.ar-active .ar-status-pill {
+  position: fixed !important;
+  top: 18px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 50 !important;
+  pointer-events: none !important;
+}
+
+/* แถบข้อมูลการแข่งขันและปุ่มเดิน ลอยอยู่ขอบล่างสุด */
+body.ar-active .match-header {
+  position: fixed !important;
+  bottom: 64px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: calc(100% - 24px) !important;
+  max-width: 440px !important;
+  z-index: 40 !important;
+  background: rgba(15, 23, 42, 0.92) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8) !important;
+  pointer-events: auto !important;
+}
+
+/* ข้อความใบ้เดินหมาก (คลิกทะลุได้ ไม่บังหมากข้างหลัง) */
+body.ar-active #hint-text {
+  position: fixed !important;
+  bottom: 175px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: 90% !important;
+  max-width: 420px !important;
+  text-align: center !important;
+  z-index: 30 !important;
+  background: rgba(15, 23, 42, 0.8) !important;
+  padding: 6px 14px !important;
+  border-radius: 999px !important;
+  font-size: 0.78rem !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  pointer-events: none !important;
+}
+
+/* ปุ่มขอยอมแพ้ ลอยอยู่ล่างสุด */
+body.ar-active #btn-resign {
+  position: fixed !important;
+  bottom: 14px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: calc(100% - 24px) !important;
+  max-width: 440px !important;
+  z-index: 40 !important;
+  pointer-events: auto !important;
+}
+
+/* ซ่อนกล่องข้อมูลดีบัก AR */
+.ar-debug-hud,
+body.ar-active .ar-debug-hud {
+  display: none !important;
+  pointer-events: none !important;
+}
+

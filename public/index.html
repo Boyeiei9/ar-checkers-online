@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AR Checkers Online — หมากฮอสออนไลน์ (WebAR)</title>
+  <meta name="description" content="เกมหมากฮอสไทยออนไลน์ 2 ผู้เล่น เล่นผ่านเว็บบนมือถือด้วย WebAR สำหรับนำเสนอในห้องเรียน">
+  <link rel="stylesheet" href="css/style.css?v=9">
+
+  <!-- A-Frame 3D Engine (1.4.2 - version fully compatible with MindAR 1.2.5) & MindAR Image Tracking -->
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <!-- QR Code Generator Library -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Header (แสดงเฉพาะหน้าแรก/ล็อบบี้ ซ่อนอัตโนมัติเมื่อเข้าเล่นเกม) -->
+    <header id="main-header">
+      <div style="display: flex; justify-content: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap;">
+        <span class="brand-badge">⚡ WebAR Multiplayer</span>
+      </div>
+      <h1>AR Checkers</h1>
+      <p class="subtitle">เกมหมากฮอสไทยออนไลน์ 2 ผู้เล่น</p>
+    </header>
+
+    <!-- Notification Banner -->
+    <div id="banner-alert" class="notification warning hidden"></div>
+
+    <!-- 1. View: หน้าตั้งชื่อ (Name View) -->
+    <section id="view-name" class="view">
+      <div class="input-group">
+        <div class="input-header">
+          <label for="input-name">ชื่อผู้เล่นของคุณ:</label>
+          <span id="name-count" class="char-counter">0/12</span>
+        </div>
+        <input type="text" id="input-name" maxlength="12" placeholder="ใส่ชื่อ 2-12 ตัวอักษร" autocomplete="off" autofocus>
+      </div>
+      <button id="btn-join" class="btn btn-primary">
+        🚀 เข้าสู่ล็อบบี้
+      </button>
+
+      <!-- ลิงก์จอฉาย QR & สไลด์นำเสนอ (เฉพาะหน้าแรก) -->
+      <div style="display: flex; justify-content: center; gap: 8px; margin-top: 14px; flex-wrap: wrap;">
+        <a href="/qr.html" target="_blank" class="brand-badge" style="text-decoration: none; background: rgba(34, 197, 94, 0.15); color: #4ade80; border-color: rgba(34, 197, 94, 0.3);">
+          📺 จอฉาย QR ห้องเรียน
+        </a>
+        <a href="/slides.html" target="_blank" class="brand-badge" style="text-decoration: none; background: rgba(168, 85, 247, 0.15); color: #c084fc; border-color: rgba(168, 85, 247, 0.3);">
+          📊 สไลด์นำเสนอ
+        </a>
+      </div>
+    </section>
+
+    <!-- 2. View: หน้าล็อบบี้ (Lobby View) -->
+    <section id="view-lobby" class="view hidden">
+      <!-- Live stats -->
+      <div class="stats-strip">
+        <div class="stat-item">
+          <span class="stat-dot"></span>
+          <span>ออนไลน์: <b id="stat-online" style="color: #fff;">1</b> คน</span>
+        </div>
+        <div class="stat-item">
+          <span>⏳ ในคิว: <b id="stat-queue" style="color: #fff;">0</b> คน</span>
+        </div>
+      </div>
+
+      <!-- User card -->
+      <div class="user-card">
+        <div class="user-avatar" id="avatar-icon">♟️</div>
+        <div class="user-info">
+          <div class="user-name" id="text-player-name">ผู้เล่น</div>
+          <div class="user-role">พร้อมจับคู่แข่งขัน</div>
+        </div>
+        <button id="btn-edit-name" class="btn-icon" title="เปลี่ยนชื่อ">✏️</button>
+      </div>
+
+      <!-- Matchmaking & Rules buttons -->
+      <button id="btn-quick-match" class="btn btn-primary btn-pulse" style="padding: 16px; font-size: 1.1rem;">
+        ⚡ จับคู่ด่วน (Quick Match)
+      </button>
+
+      <div style="display: flex; gap: 8px;">
+        <button id="btn-rules" class="btn btn-secondary" style="flex: 1;">
+          📖 กติกา
+        </button>
+        <button id="btn-lobby-marker" class="btn btn-secondary" style="flex: 1;">
+          🖼️ มาร์กเกอร์ AR
+        </button>
+      </div>
+    </section>
+
+    <!-- 3. View: หน้ารอคู่แข่ง (Queue View) -->
+    <section id="view-queue" class="view hidden">
+      <div class="radar-box">
+        <div class="radar-circle">⏳</div>
+        <h3 style="color: var(--accent); font-size: 1.15rem;">กำลังค้นหาคู่ต่อสู้...</h3>
+        <p style="color: var(--text-muted); font-size: 0.85rem; text-align: center;">
+          ระบบกำลังจับคู่ผู้เล่นในห้องเรียนที่กดพร้อมกัน
+        </p>
+        <div class="queue-timer" id="queue-timer">00:00</div>
+      </div>
+      <button id="btn-cancel-queue" class="btn btn-danger">
+        ✖ ยกเลิกการค้นหา
+      </button>
+    </section>
+
+    <!-- 4. View: หน้ากระดานเกม (Game View) -->
+    <section id="view-game" class="view hidden">
+      <!-- ข้อมูลผู้เล่นและสถานะตาเดิน -->
+      <div class="match-header">
+        <div class="match-players">
+          <div class="player-tag">
+            <div id="badge-my-color" class="piece-badge white"></div>
+            <div>
+              <div id="text-my-name" style="font-weight: 700; font-size: 0.95rem;">ฉัน</div>
+              <div class="score-badge" id="text-my-count">เหลือ 8 ตัว</div>
+            </div>
+          </div>
+          <div style="color: var(--text-muted); font-size: 0.8rem; font-weight: 700;">VS</div>
+          <div class="player-tag" style="flex-direction: row-reverse; text-align: right;">
+            <div id="badge-opp-color" class="piece-badge black"></div>
+            <div>
+              <div id="text-opponent-name" style="font-weight: 700; font-size: 0.95rem;">คู่ต่อสู้</div>
+              <div class="score-badge" id="text-opp-count">เหลือ 8 ตัว</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- สถานะตาเดิน และแถบสลับโหมด 3D / AR / 2D -->
+        <div class="status-row">
+          <div id="badge-turn" class="turn-pill my-turn">👉 ตาคุณ</div>
+          
+          <div style="display: flex; gap: 6px; align-items: center;">
+            <div class="mode-switch-group">
+              <button id="mode-btn-3d" class="mode-btn active" title="โหมด 3D ลอยกลางจอ ไม่ใช้กล้อง">🎮 3D</button>
+              <button id="mode-btn-ar" class="mode-btn" title="โหมด AR ฉายกระดานบนภาพมาร์กเกอร์">📷 AR</button>
+              <button id="mode-btn-2d" class="mode-btn" title="โหมด 2D ตารางเรียบง่าย">▦ 2D</button>
+            </div>
+            <button id="btn-game-marker" class="btn-icon" title="ดูภาพมาร์กเกอร์ AR">🖼️</button>
+            <button id="btn-in-game-rules" class="btn-icon" title="ดูกติกา">📖</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- กระดานหมากฮอส 3D / AR Scene -->
+      <div id="container-3d" class="scene-3d-container">
+        <!-- ป้ายสถานะการตรวจจับภาพมาร์กเกอร์ในโหมด AR -->
+        <div id="ar-status" class="ar-status-pill hidden">🔍 กรุณาส่องกล้องไปที่ภาพมาร์กเกอร์</div>
+
+        <a-scene
+          id="aframe-scene"
+          embedded
+          mindar-image="imageTargetSrc: assets/marker.mind; autoStart: false; uiLoading: no; uiScanning: no;"
+          color-space="sRGB"
+          renderer="alpha: true; antialias: true; colorManagement: true;"
+          vr-mode-ui="enabled: false"
+          device-orientation-permission-ui="enabled: false"
+          cursor="rayOrigin: mouse"
+          raycaster="objects: .clickable">
+
+          <!-- แสงไฟในฉาก AR & 3D (Ambient + Directional หลายทิศทาง) -->
+          <a-entity light="type: ambient; color: #ffffff; intensity: 1.4"></a-entity>
+          <a-entity light="type: directional; color: #ffffff; intensity: 1.6" position="0 3 4"></a-entity>
+          <a-entity light="type: directional; color: #ffffff; intensity: 1.1" position="0 -3 4"></a-entity>
+          <a-entity light="type: directional; color: #38bdf8; intensity: 0.8" position="-2 2 3"></a-entity>
+
+          <!-- กล้องมุมมอง 3D / AR พร้อม Raycaster สำหรับทัช/คลิก -->
+          <a-camera id="main-camera" position="0 0 0" look-controls="enabled: false" wasd-controls="enabled: false"
+            cursor="rayOrigin: mouse" raycaster="objects: .clickable">
+          </a-camera>
+
+          <!-- AR Target Entity สำหรับ MindAR (Marker Anchor: กว้าง = 1.0) -->
+          <a-entity mindar-image-target="targetIndex: 0" id="ar-target-group">
+            
+            <!-- [ปัญหา B-2 & B-3] ตัวหมุนรอบแกนตั้งของมาร์กเกอร์ (Z-axis): ขาว=180, ดำ=0 ให้หมากตัวเองอยู่ใกล้ตัวเสมอ -->
+            <a-entity id="board-orient-wrapper" position="0 0 0" rotation="0 0 180">
+              <!-- กลุ่มกระดาน 3D หมุน -90 0 0 ให้หน้ากระดานหันเข้าหากล้องเสมอ -->
+              <a-entity id="board-3d-group" position="0 0 0.01" rotation="-90 0 0" scale="1 1 1">
+                <a-entity id="tiles-3d-group"></a-entity>
+                <a-entity id="highlights-3d-group"></a-entity>
+                <a-entity id="pieces-3d-group"></a-entity>
+              </a-entity>
+            </a-entity>
+
+          </a-entity>
+        </a-scene>
+
+      </div>
+
+      <!-- กระดานหมากฮอส 2D (สำรอง) -->
+      <div id="container-2d" class="board-container hidden">
+        <div id="checker-board" class="checker-board"></div>
+      </div>
+
+      <div id="hint-text" style="font-size: 0.78rem; color: var(--text-muted); text-align: center;">
+        💡 แตะตัวหมาก 3D เพื่อดูตาเดิน แล้วแตะช่องสีเขียวเพื่อเดิน
+      </div>
+
+      <!-- ปุ่มยอมแพ้ -->
+      <button id="btn-resign" class="btn btn-secondary" style="font-size: 0.85rem; padding: 9px 16px; align-self: center;">
+        🏳️ ขอยอมแพ้
+      </button>
+    </section>
+  </div>
+
+  <!-- Modal: จบเกม (Game Over) -->
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal-content" style="text-align: center;">
+      <h2 id="modal-title" class="modal-title">🎉 คุณชนะ!</h2>
+      <p id="modal-body" style="color: #cbd5e1; font-size: 0.95rem; line-height: 1.5;">
+        คุณกินหมากฝ่ายตรงข้ามหมด
+      </p>
+      <div style="display: flex; gap: 10px; margin-top: 8px;">
+        <button id="modal-btn-rematch" class="btn btn-primary" style="flex: 1;">⚡ จับคู่ใหม่</button>
+        <button id="modal-btn-lobby" class="btn btn-secondary" style="flex: 1;">🏠 ล็อบบี้</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: กติกาหมากฮอสไทย (Rules Popup) -->
+  <div id="modal-rules" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 class="modal-title">📜 กติกาหมากฮอสไทย</h2>
+        <button id="modal-btn-close-rules-x" class="btn-icon" style="font-size: 1.2rem;">✕</button>
+      </div>
+
+      <div class="rules-list">
+        <div class="rule-card">
+          <div class="rule-icon">🏁</div>
+          <div class="rule-text">
+            <h4>กระดาน 8×8</h4>
+            <p>เดินเฉพาะช่องสีเข้ม ฝั่งละ 8 ตัว เริ่มที่ 2 แถวหน้าสุด ขาวเดินก่อนเสมอ</p>
+          </div>
+        </div>
+
+        <div class="rule-card">
+          <div class="rule-icon">♟️</div>
+          <div class="rule-text">
+            <h4>การเดินเบี้ยธรรมดา</h4>
+            <p>เดินทแยงไปข้างหน้าทีละ 1 ช่อง และกินได้เฉพาะทิศข้างหน้าเท่านั้น (ห้ามกินถอยหลัง)</p>
+          </div>
+        </div>
+
+        <div class="rule-card">
+          <div class="rule-icon">⚡</div>
+          <div class="rule-text">
+            <h4>บังคับกิน & กินต่อเนื่อง</h4>
+            <p>ถ้ามีตัวที่กินได้ <b>ต้องกินเท่านั้น!</b> หากกินแล้วตัวถัดไปยังกินต่อได้ ต้องกระโดดกินต่อเนื่องในตาเดียวกัน</p>
+          </div>
+        </div>
+
+        <div class="rule-card">
+          <div class="rule-icon">👑</div>
+          <div class="rule-text">
+            <h4>เลื่อนขั้นเป็นฮอส</h4>
+            <p>เมื่อเบี้ยไปถึงแถวสุดท้ายของคู่แข่งจะกลายเป็นฮอสทันที (และหยุดกินต่อในตานั้น)</p>
+          </div>
+        </div>
+
+        <div class="rule-card">
+          <div class="rule-icon">🦅</div>
+          <div class="rule-text">
+            <h4>พลังของฮอส</h4>
+            <p>เดินทแยงได้ไกลทุกทิศทาง และกินได้ทั้งหน้า-หลัง (กระโดดข้ามลงช่องถัดไป)</p>
+          </div>
+        </div>
+
+        <div class="rule-card">
+          <div class="rule-icon">🏆</div>
+          <div class="rule-text">
+            <h4>การตัดสินผลแพ้ชนะ</h4>
+            <p>ฝ่ายที่ถูกกินหมากหมด หรือถึงตาเดินแล้วไม่มีทางเดินเหลือ จะเป็นฝ่ายแพ้</p>
+          </div>
+        </div>
+      </div>
+
+      <button id="modal-btn-close-rules" class="btn btn-primary" style="width: 100%;">
+        👍 เข้าใจแล้ว
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal: ภาพมาร์กเกอร์ AR (Marker Modal) -->
+  <div id="modal-marker" class="modal-overlay hidden">
+    <div class="modal-content" style="text-align: center;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 class="modal-title">🖼️ ภาพมาร์กเกอร์ AR</h2>
+        <button id="modal-btn-close-marker-x" class="btn-icon" style="font-size: 1.2rem;">✕</button>
+      </div>
+
+      <p style="font-size: 0.85rem; color: var(--text-muted);">
+        เปิดภาพนี้บนหน้าจอโน้ตบุ๊ก หรือเปิดบนมือถืออีกเครื่อง แล้วใช้กล้องในโหมด AR ส่อง กระดาน 3D จะโผล่ขึ้นมาทันที!
+      </p>
+
+      <div class="marker-img-box">
+        <img src="assets/marker.png" alt="AR Marker Card (แนวนอนเต็มภาพ)">
+      </div>
+
+      <div style="display: flex; gap: 8px;">
+        <a href="assets/marker.png" target="_blank" class="btn btn-secondary" style="flex: 1; font-size: 0.85rem;">
+          🔗 เปิดภาพเต็ม (แนวนอน)
+        </a>
+        <button id="modal-btn-close-marker" class="btn btn-primary" style="flex: 1;">
+          เข้าใจแล้ว
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: QR Code สำหรับเพื่อนสแกน (QR Modal) -->
+  <div id="modal-qr" class="modal-overlay hidden">
+    <div class="modal-content" style="text-align: center;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 class="modal-title">📱 สแกน QR เข้าเล่น</h2>
+        <button id="modal-btn-close-qr-x" class="btn-icon" style="font-size: 1.2rem;">✕</button>
+      </div>
+
+      <p style="font-size: 0.85rem; color: var(--text-muted);">
+        ให้เพื่อนเปิดกล้องมือถือสแกน QR Code นี้เพื่อเข้าห้องเกมเดียวกันได้ทันที
+      </p>
+
+      <div style="background: #ffffff; padding: 14px; border-radius: 14px; display: inline-flex; justify-content: center; align-items: center; margin: 0 auto; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+        <div id="lobby-qrcode-canvas"></div>
+      </div>
+
+      <div style="font-family: monospace; font-size: 0.85rem; color: var(--accent); word-break: break-all;" id="text-lobby-qr-url">
+        http://...
+      </div>
+
+      <div style="display: flex; gap: 8px;">
+        <a href="/qr.html" target="_blank" class="btn btn-secondary" style="flex: 1; font-size: 0.85rem;">
+          📺 เปิดจอใหญ่
+        </a>
+        <button id="modal-btn-close-qr" class="btn btn-primary" style="flex: 1;">
+          ปิดหน้าต่าง
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Socket.io & Game Scripts -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/net.js?v=12"></script>
+  <script src="js/game3d.js?v=12"></script>
+  <script src="js/ui.js?v=12"></script>
+</body>
+</html>

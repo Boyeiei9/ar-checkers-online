@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>สไลด์นำเสนอ — AR Checkers Online (โครงงานวิทยาการคอมพิวเตอร์)</title>
+  <style>
+    :root {
+      --slide-width: 100vw;
+      --slide-height: 100vh;
+      --primary: #38bdf8;
+      --primary-dark: #0284c7;
+      --bg-dark: #0b1120;
+      --card-bg: rgba(30, 41, 59, 0.75);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Prompt", sans-serif;
+    }
+
+    body {
+      background: var(--bg-dark);
+      color: #f8fafc;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+    }
+
+    /* Slides Deck Container */
+    .deck {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slide {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 60px;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(60px);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .slide.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(0);
+    }
+
+    .slide.prev {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(-60px);
+    }
+
+    /* Content Layouts */
+    .slide-content {
+      width: 100%;
+      max-width: 1100px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .slide-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--primary);
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      align-self: flex-start;
+    }
+
+    .slide-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.2;
+      background: linear-gradient(135deg, #ffffff 30%, #38bdf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .slide-subtitle {
+      font-size: 1.2rem;
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-top: 10px;
+    }
+
+    .info-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .info-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(56, 189, 248, 0.4);
+    }
+
+    .card-icon {
+      font-size: 2rem;
+      line-height: 1;
+    }
+
+    .card-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #38bdf8;
+    }
+
+    .card-desc {
+      font-size: 0.95rem;
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+
+    /* Code Snippet Box */
+    .code-box {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 14px;
+      padding: 18px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.9rem;
+      color: #38bdf8;
+      line-height: 1.5;
+      overflow-x: auto;
+    }
+
+    /* Presentation Navigation Bar */
+    .nav-bar {
+      height: 64px;
+      background: rgba(15, 23, 42, 0.95);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 30px;
+      z-index: 100;
+    }
+
+    .nav-left, .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .nav-btn {
+      background: #334155;
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .nav-btn:hover {
+      background: #475569;
+    }
+
+    .slide-counter {
+      font-family: monospace;
+      font-size: 1rem;
+      color: #94a3b8;
+    }
+
+    /* Progress Bar */
+    .progress-track {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #38bdf8, #818cf8);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    /* Speaker Notes Drawer */
+    .speaker-notes {
+      position: fixed;
+      bottom: 64px;
+      left: 0;
+      width: 100%;
+      background: #020617;
+      border-top: 2px solid #38bdf8;
+      padding: 16px 30px;
+      font-size: 0.95rem;
+      color: #93c5fd;
+      line-height: 1.5;
+      display: none;
+      z-index: 99;
+      box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.7);
+    }
+    .speaker-notes.open {
+      display: block;
+    }
+    .speaker-notes b {
+      color: #fff;
+    }
+
+    /* Print Styles (Ctrl+P to export PDF) */
+    @media print {
+      body {
+        overflow: visible;
+        height: auto;
+        background: #0b1120 !important;
+        -webkit-print-color-adjust: exact;
+      }
+      .nav-bar, .speaker-notes, .progress-track {
+        display: none !important;
+      }
+      .slide {
+        position: relative !important;
+        page-break-after: always;
+        opacity: 1 !important;
+        transform: none !important;
+        height: 100vh;
+        width: 100vw;
+        padding: 40px !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="progress-track">
+    <div id="progress-fill" class="progress-fill"></div>
+  </div>
+
+  <div class="deck">
+
+    <!-- Slide 1: ปกโครงการ -->
+    <section class="slide active">
+      <div class="slide-content" style="text-align: center; align-items: center;">
+        <span class="slide-tag">🎓 โครงงานวิชาวิทยาการคอมพิวเตอร์</span>
+        <h1 class="slide-title" style="font-size: 3.5rem;">AR Checkers Online</h1>
+        <p class="slide-subtitle" style="font-size: 1.4rem; max-width: 780px;">
+          เกมหมากฮอสไทยออนไลน์แบบ 2 ผู้เล่นผ่าน WebAR บนเบราว์เซอร์มือถือ
+        </p>
+
+        <div style="display: flex; gap: 14px; margin-top: 20px;">
+          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 10px 18px; font-size: 0.9rem;">
+            ⚡ <b>Stack:</b> Node.js • Socket.io • A-Frame • MindAR
+          </div>
+          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 10px 18px; font-size: 0.9rem;">
+            📱 <b>Device:</b> รองรับทั้ง iOS (Safari) และ Android (Chrome)
+          </div>
+        </div>
+
+        <div style="margin-top: 30px; font-size: 0.9rem; color: #64748b;">
+          กดลูกศร <b>→</b> หรือกดปุ่ม <b>ถัดไป</b> ที่แถบด้านล่างเพื่อเริ่มการนำเสนอ
+        </div>
+      </div>
+      <div class="notes-content" style="display: none;">
+        <b>บทพูดหน้า 1:</b> สวัสดีครับอาจารย์และเพื่อนๆ ทุกคน วันนี้กลุ่มผมขอเสนอโครงงาน "AR Checkers Online" ซึ่งเป็นการนำเกมกระดานดั้งเดิมอย่างหมากฮอสไทย มาผสานเข้ากับเทคโนโลยี WebAR ทำให้เพื่อนๆ ในห้องเรียนสามารถหยิบสมาร์ตโฟนขึ้นมาสแกน QR Code แล้วฉายกระดานหมากฮอส 3 มิติลงบนโต๊ะเรียนเพื่อเล่นด้วยกันแบบเรียลไทม์ได้ทันที โดยไม่ต้องติดตั้งแอปพลิเคชันใดๆ ครับ
+      </div>
+    </section>
+
+    <!-- Slide 2: ที่มาและความสำคัญ (Motivation) -->
+    <section class="slide">
+      <div class="slide-content">
+        <span class="slide-tag">💡 ที่มาและความสำคัญ</span>
+        <h2 class="slide-title">ทำไมต้องเป็น WebAR Checkers?</h2>
+        <p class="slide-subtitle">แก้ปัญหาและข้อจำกัดของเกมกระดานแบบเดิมและแอปทั่วไป</p>
+
+        <div class="cards-grid">
+          <div class="info-card">
+            <div class="card-icon">📦</div>
+            <div class="card-title">ไม่ต้องพกพากระดานจริง</div>
+            <div class="card-desc">
+              กระดานหมากฮอสและตัวหมากจริงมีโอกาสตกหล่นสูญหาย แต่ด้วย AR ผู้เล่นเพียงส่องภาพมาร์กเกอร์แผ่นเล็กๆ ก็จำลองกระดานขึ้นมาได้ทันที
+            </div>
+          </div>
+
+          <div class="info-card">
+            <div class="card-icon">🚀</div>
+            <div class="card-title">Zero Installation (WebAR)</div>
+            <div class="card-desc">
+              แอป AR ส่วนใหญ่ต้องดาวน์โหลดจาก App Store / Play Store ขนาดหลายร้อย MB แต่โปรเจกต์นี้ทำงานบนเบราว์เซอร์ 100% สแกน QR แล้วเล่นได้ใน 3 วินาที
+            </div>
+          </div>
+
+          <div class="info-card">
+            <div class="card-icon">🛡️</div>
+            <div class="card-title">Server-Authoritative</div>
+            <div class="card-desc">
+              เล่นหมากฮอสในห้องเรียนมักมีปัญหา "ลืมกิน", "กินผิดกฎ" หรือ "แอบโกง" ระบบนี้มีเซิร์ฟเวอร์คอยคุมกฎบังคับกินและการสลับตาแบบ 100%
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="notes-content" style="display: none;">
+        <b>บทพูดหน้า 2:</b> จุดเริ่มต้นของโครงงานนี้เกิดจากความต้องการนำเทคโนโลยี AR มาใช้จริงในห้องเรียนครับ ปัญหาของ AR ในอดีตคือผู้ใช้ต้องดาวน์โหลดแอปขนาดใหญ่ ทำให้เพื่อนๆ ไม่อยากติดตั้ง แต่ด้วยเทคโนโลยี WebAR ที่รันบน WebGL และ WebRTC ผ่านเบราว์เซอร์ ทำให้ทุกคนสามารถเข้าร่วมกิจกรรมในห้องเรียนได้ทันที
+      </div>
+    </section>
+
+    <!-- Slide 3: สถาปัตยกรรมระบบ (System Architecture) -->
+    <section class="slide">
+      <div class="slide-content">
+        <span class="slide-tag">🏗️ สถาปัตยกรรมระบบ</span>
+        <h2 class="slide-title">Server-Authoritative Architecture</h2>
+        <p class="slide-subtitle">การออกแบบระบบที่ปลอดภัย ไม่เชื่อถือการคำนวณจากฝั่งผู้เล่น (Client)</p>
+
+        <div class="cards-grid">
+          <div class="info-card">
+            <div class="card-icon">🖥️</div>
+            <div class="card-title">Backend Server</div>
+            <div class="card-desc">
+              - <b>Express:</b> ให้บริการ Static Web Assets<br>
+              - <b>Socket.io:</b> จัดการ Matchmaking Queue และห้องเกม (Room)<br>
+              - <b>Rules Engine:</b> ตรวจสอบตาเดินทุกครั้ง ห้ามข้ามขั้นตอน
+            </div>
+          </div>
+
+          <div class="info-card">
+            <div class="card-icon">📱</div>
+            <div class="card-title">Frontend Client</div>
+            <div class="card-desc">
+              - ส่งเพียงคำสั่งย้ายหมาก <code>{ from: [r,c], to: [r,c] }</code><br>
+              - รับ Board State ที่อัปเดตแล้วจากเซิร์ฟเวอร์มาเรนเดอร์<br>
+              - มีระบบสลับมุมมอง 3D / AR / 2D ตามความพร้อมของอุปกรณ์
+            </div>
+          </div>
+
+          <div class="info-card">
+            <div class="card-icon">🔄</div>
+            <div class="card-title">Event Flow</div>
+            <div class="card-desc">
+              <code>join</code> ➔ <code>quick_match</code> ➔ <code>match_found</code> ➔ <code>state_update</code> ➔ <code>move</code> ➔ <code>game_over</code>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="notes-content" style="display: none;">
+        <b>บทพูดหน้า 3:</b> สถาปัตยกรรมของเกมเราใช้หลักการ Server-Authoritative ครับ โดยไคลเอนต์จะไม่มีสิทธิ์ตัดสินว่าตัวเองเดินถูกหรือชนะ แต่จะส่งเฉพาะพิกัด from/to มายังเซิร์ฟเวอร์ จากนั้นฟังก์ชัน rules.js จะตรวจสอบกฎ ถ้าถูกต้องจึงกระจาย state ใหม่กลับไปให้ผู้เล่นทั้งคู่ครับ
+      </div>
+    </section>
+
+    <!-- Slide 4: ตรรกะหมากฮอสไทย (Game Rules Engine) -->
+    <section class="slide">
+      <div class="slide-content">
+        <span class="slide-tag">♟️ ตรรกะเกม & การทดสอบ</span>
+        <h2 class="slide-title">Thai Checkers Rules Engine</h2>
+        <p class="slide-subtitle">เขียนเป็น Pure Function พร้อม Unit Tests รับประกันความถูกต้อง 43 เคส</p>
+
+        <div class="cards-grid">
+          <div class="info-card">
+            <div class="card-icon">⚡</div>
+            <div class="card-title">กฎกติกาหมากฮอสไทย</div>
+            <div class="card-desc">
+              • <b>กระดาน 8×8:</b> ฝั่งละ 8 ตัว ขาวเริ่มก่อน<br>
+              • <b>บังคับกิน (Mandatory Capture):</b> ถ้ามีตัวกินได้ ต้องกินเท่านั้น<br>
+              • <b>กินต่อเนื่อง:</b> ค้นหาเส้นทางกินต่อเนื่องแบบ Recursive<br>
+              • <b>เลื่อนขั้นเป็นฮอส:</b> เดินถึงแถวสุดท้ายคู่แข่ง
+            </div>
+          </div>
+
+          <div class="info-card">
+            <div class="card-icon">👑</div>
+            <div class="card-title">พลังของฮอส</div>
+            <div class="card-desc">
+              • <b>Flying Move:</b> เดินทแยงไกลกี่ช่องก็ได้หากไม่มีหมากขวาง<br>
+              • <b>Short Capture:</b> กระโดดข้ามหมากคู่แข่งแล้วลงช่องถัดไปทันที (ทั้งหน้าและหลัง)
+            </div>
+          </div>
+
+          <div class="info-card">
+            <div class="card-icon">🧪</div>
+            <div class="card-title">Automated Testing</div>
+            <div class="card-desc">
+              ใช้ Node.js Built-in Test Runner:<br>
+              <div class="code-box" style="margin-top: 6px; padding: 8px;">
+                ✔ tests 43<br>
+                ✔ pass 43 (100% Pass)<br>
+                ✔ e2e match test pass
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="notes-content" style="display: none;">
+        <b>บทพูดหน้า 4:</b> ส่วนของกฎกติกาถูกแยกเป็นโมดูลอิสระ ไม่ผูกกับ socket หรือ ui ทำให้เราสามารถเขียน Automated Unit Tests ครอบคลุมได้ถึง 43 กรณี ทั้งการเดินธรรมดา การกินซ้อน 3 จังหวะ และการเลื่อนขั้นเป็นฮอส ทำให้มั่นใจได้ว่าไม่มีบั๊กในระหว่างเล่นจริงครับ
+      </div>
+    </section>
+
+    <!-- Slide 5: เทคโนโลยี 3D & WebAR (MindAR + A-Frame) -->
+    <section class="slide">
+      <div class="slide-content">
+        <span class="slide-tag">📷 เทคโนโลยี 3D & WebAR</span>
+        <h2 class="slide-title">A-Frame + MindAR Image Tracking</h2>
+        <p class="slide-subtitle">เรนเดอร์ 3 มิติเสมือนจริง และตรวจจับภาพมาร์กเกอร์ผ่านกล้อง</p>
+
+        <div class="cards-grid">
+          <div class="info-card">
+            <div class="card-icon">🎯</div>
+            <div class="card-title">MindAR Image Tracking</div>
+            <div class="card-desc">
+              คอมไพล์รูปมาร์กเกอร์เป็นการกระจาย Feature Points (.mind) เพื่อให้กล้องมือถือแทร็กตำแหน่งได้อย่างแม่นยำและเสถียร รองรับทั้ง iOS Safari และ Android Chrome
+            </div>
+          </div>
+
+          <div class="info-card">
+            <div class="card-icon">🎲</div>
+            <div class="card-title">A-Frame Primitives</div>
+            <div class="card-desc">
+              สร้างตัวหมากจากทรงกระบอก <code>a-cylinder</code> และมงกุฎฮอสจาก <code>a-torus</code> ช่วยให้โหลดหน้าเว็บได้ไวมาก ไม่ต้องดาวน์โหลด 3D Model หนักๆ
+            </div>
+          </div>
+
+          <div class="info-card">
+            <div class="card-icon">🔄</div>
+            <div class="card-title">3 Display Modes</div>
+            <div class="card-desc">
+              • <b>🎮 3D โหมด:</b> กระดานลอยกลางจอ (Fallback ไม่ใช้กล้อง)<br>
+              • <b>📷 AR โหมด:</b> ฉายกระดานลงบนโต๊ะจริง<br>
+              • <b>▦ 2D โหมด:</b> ตารางคลาสสิกสำหรับเน็ตช้า
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="notes-content" style="display: none;">
+        <b>บทพูดหน้า 5:</b> ในส่วนของการแสดงผล 3D เราเลือกใช้ A-Frame และ MindAR ครับ ข้อดีคือตัวหมากถูกสร้างขึ้นจากรูปทรงเรขาคณิตพื้นฐาน จึงโหลดได้เร็วมากบนสมาร์ตโฟน และเรามีโหมดสำรอง 3D ที่ไม่ต้องเปิดกล้อง เตรียมไว้สำหรับกรณีที่ห้องเรียนมีแสงน้อยหรือกล้องมีปัญหาครับ
+      </div>
+    </section>
+
+    <!-- Slide 6: Flow การเล่นในห้องเรียน (Classroom Flow) -->
+    <section class="slide">
+      <div class="slide-content">
+        <span class="slide-tag">👥 ประสบการณ์ผู้ใช้</span>
+        <h2 class="slide-title">Flow การเล่นในห้องเรียน</h2>
+        <p class="slide-subtitle">ออกแบบให้เพื่อนทุกคนเข้าร่วมได้ง่ายภายใน 3 ขั้นตอน</p>
+
+        <div class="cards-grid">
+          <div class="info-card">
+            <div class="card-icon">1️⃣</div>
+            <div class="card-title">สแกน QR Code หน้าห้อง</div>
+            <div class="card-desc">
+              ฉายหน้า <code>/qr.html</code> ขึ้นจอโปรเจกเตอร์ เพื่อนในห้องเปิดกล้องมือถือสแกนเข้าเว็บได้พร้อมกัน
+            </div>
+          </div>
+
+          <div class="info-card">
+            <div class="card-icon">2️⃣</div>
+            <div class="card-title">ตั้งชื่อ & จับคู่ด่วน</div>
+            <div class="card-desc">
+              พิมพ์ชื่อ 2-12 ตัวอักษร -> กด "⚡ จับคู่ด่วน" เซิร์ฟเวอร์จะจับคู่แบบสุ่มสี (ขาว/ดำ) ให้อัตโนมัติ
+            </div>
+          </div>
+
+          <div class="info-card">
+            <div class="card-icon">3️⃣</div>
+            <div class="card-title">เริ่มดวลบนโต๊ะเรียน</div>
+            <div class="card-desc">
+              ผู้เล่นจะเห็นหมากของตัวเองอยู่ด้านล่างเสมอ แตะหมากเพื่อดูไฟเรืองแสงสีเขียวบอกตาเดิน แล้วแตะเพื่อเดิน
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="notes-content" style="display: none;">
+        <b>บทพูดหน้า 6:</b> Flow การใช้งานออกแบบมาเพื่อห้องเรียนโดยเฉพาะครับ ผู้บรรยายเปิดหน้าจอ QR Code ขึ้นโปรเจกเตอร์ เพื่อนๆ สแกนแล้วกดจับคู่ด่วน ระบบจะจับคู่ให้อัตโนมัติและแสดงผลแบบเรียลไทม์ครับ
+      </div>
+    </section>
+
+    <!-- Slide 7: สาธิตสด & สแกนทดลองเล่น (Live Demo) -->
+    <section class="slide">
+      <div class="slide-content" style="text-align: center; align-items: center;">
+        <span class="slide-tag">📱 ช่วงสาธิตสด (Live Demo)</span>
+        <h2 class="slide-title">ขอเชิญเพื่อนๆ สแกนทดลองเล่นสด</h2>
+        <p class="slide-subtitle">หยิบสมาร์ตโฟนขึ้นมาเปิดกล้องสแกน QR Code นี้ได้เลยครับ</p>
+
+        <div style="background: #ffffff; padding: 20px; border-radius: 20px; display: inline-flex; margin: 10px auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+          <div id="slide-qr-canvas"></div>
+        </div>
+
+        <div style="display: flex; gap: 12px; margin-top: 10px;">
+          <a href="/qr.html" target="_blank" class="nav-btn" style="background: #0284c7;">
+            📺 เปิดจอใหญ่โปรเจกเตอร์ (/qr.html)
+          </a>
+          <a href="/" target="_blank" class="nav-btn" style="background: #334155;">
+            🎮 เปิดหน้าเกมหลัก
+          </a>
+          <a href="/assets/marker.png" target="_blank" class="nav-btn" style="background: #334155;">
+            🖼️ เปิดภาพมาร์กเกอร์ AR
+          </a>
+        </div>
+      </div>
+      <div class="notes-content" style="display: none;">
+        <b>บทพูดหน้า 7:</b> ในช่วงนี้ขอเชิญอาจารย์และเพื่อนๆ ทุกคนหยิบสมาร์ตโฟนขึ้นมาสแกน QR Code บนจอนี้เพื่อทดลองเล่นพร้อมกันได้เลยครับ เราจะเปิดภาพมาร์กเกอร์ AR บนจอให้ลองส่อง หรือจะสลับเป็นโหมด 3D ลอยกลางจอก็ได้ครับ
+      </div>
+    </section>
+
+    <!-- Slide 8: สรุปผลและการต่อยอด (Conclusion & Q&A) -->
+    <section class="slide">
+      <div class="slide-content">
+        <span class="slide-tag">🏁 สรุปผล & ตอบคำถาม</span>
+        <h2 class="slide-title">สรุปผลโครงงานและการต่อยอด</h2>
+        <p class="slide-subtitle">ความรู้ที่ได้รับและแนวทางการพัฒนาในอนาคต</p>
+
+        <div class="cards-grid">
+          <div class="info-card">
+            <div class="card-icon">🎓</div>
+            <div class="card-title">ความรู้ที่ได้รับ</div>
+            <div class="card-desc">
+              • การจัดการ Realtime State และ WebSockets ด้วย Socket.io<br>
+              • การประมวลผล Computer Vision ในเบราว์เซอร์ผ่าน MindAR<br>
+              • การสร้างและเรนเดอร์ 3D Scene ด้วย WebGL/A-Frame
+            </div>
+          </div>
+
+          <div class="info-card">
+            <div class="card-icon">🚀</div>
+            <div class="card-title">แนวทางการต่อยอด</div>
+            <div class="card-desc">
+              • เพิ่มโหมดบอท AI สำหรับฝึกซ้อมคนเดียว<br>
+              • รองรับกติกาหมากฮอสสากล (International Draughts)<br>
+              • ระบบแรงกิ้ง (Leaderboard) และระบบเสียงเอฟเฟกต์ 3D
+            </div>
+          </div>
+
+          <div class="info-card">
+            <div class="card-icon">❓</div>
+            <div class="card-title">Q&A</div>
+            <div class="card-desc" style="font-size: 1.1rem; color: #38bdf8; font-weight: 700; margin-top: 10px;">
+              ขอขอบคุณอาจารย์และเพื่อนๆ ทุกท่านครับ<br>
+              ยินดีตอบทุกข้อซักถามครับ! 🙏
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="notes-content" style="display: none;">
+        <b>บทพูดหน้า 8:</b> สรุปผลการดำเนินงาน โครงงานนี้บรรลุเป้าหมายครบทั้งด้านฟังก์ชันการเล่นมัลติเพลเยอร์ การตรวจกติกาที่ถูกต้อง และการประยุกต์ใช้ WebAR บนอุปกรณ์จริงครับ ขอบคุณอาจารย์และเพื่อนๆ ทุกท่าน ยินดีตอบข้อซักถามครับ
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Speaker Notes Drawer (กดปุ่ม 'N' หรือกดปุ่มบทพูด) -->
+  <div id="speaker-drawer" class="speaker-notes">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+      <span style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #38bdf8;">🎙️ โน้ตบทพูดสำหรับผู้นำเสนอ (Speaker Notes)</span>
+      <span style="font-size: 0.75rem; color: #64748b;">กดปุ่ม 'N' เพื่อเปิด/ปิด</span>
+    </div>
+    <div id="speaker-text">...</div>
+  </div>
+
+  <!-- Bottom Navigation Bar -->
+  <footer class="nav-bar">
+    <div class="nav-left">
+      <a href="/" class="nav-btn" style="text-decoration: none;">🏠 หน้าหลักเกม</a>
+      <button id="btn-toggle-notes" class="nav-btn">🎙️ บทพูด (Notes)</button>
+      <button id="btn-print" class="nav-btn" title="พิมพ์เป็น PDF เพื่อส่งงาน">🖨️ Export PDF</button>
+    </div>
+
+    <div class="nav-right">
+      <button id="btn-prev" class="nav-btn">◀ ก่อนหน้า</button>
+      <span id="slide-num" class="slide-counter">1 / 8</span>
+      <button id="btn-next" class="nav-btn" style="background: #0284c7;">ถัดไป ▶</button>
+      <button id="btn-fullscreen" class="nav-btn" title="เต็มจอ">⛶</button>
+    </div>
+  </footer>
+
+  <!-- QR Code Library for Demo Slide -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
+  <script>
+    const slides = Array.from(document.querySelectorAll('.slide'));
+    let currentIdx = 0;
+    const totalSlides = slides.length;
+
+    const progressFill = document.getElementById('progress-fill');
+    const slideNumEl = document.getElementById('slide-num');
+    const speakerDrawer = document.getElementById('speaker-drawer');
+    const speakerText = document.getElementById('speaker-text');
+
+    function updateSlide(newIdx) {
+      if (newIdx < 0 || newIdx >= totalSlides) return;
+
+      currentIdx = newIdx;
+
+      slides.forEach((s, idx) => {
+        s.classList.remove('active', 'prev');
+        if (idx === currentIdx) {
+          s.classList.add('active');
+        } else if (idx < currentIdx) {
+          s.classList.add('prev');
+        }
+      });
+
+      // Update counter & progress bar
+      slideNumEl.textContent = `${currentIdx + 1} / ${totalSlides}`;
+      progressFill.style.width = `${((currentIdx + 1) / totalSlides) * 100}%`;
+
+      // Update speaker notes
+      const notesEl = slides[currentIdx].querySelector('.notes-content');
+      speakerText.innerHTML = notesEl ? notesEl.innerHTML : '<i>ไม่มีโน้ตในสไลด์นี้</i>';
+
+      // If on Slide 7 (QR Demo), render QR
+      if (currentIdx === 6) {
+        renderDemoQR();
+      }
+    }
+
+    let qrRendered = false;
+    function renderDemoQR() {
+      if (qrRendered) return;
+      const targetUrl = window.location.origin + '/';
+      const container = document.getElementById('slide-qr-canvas');
+      if (container && window.QRCode) {
+        container.innerHTML = '';
+        new QRCode(container, {
+          text: targetUrl,
+          width: 200,
+          height: 200,
+          colorDark: "#0f172a",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.M
+        });
+        qrRendered = true;
+      }
+    }
+
+    // Buttons
+    document.getElementById('btn-next').addEventListener('click', () => updateSlide(currentIdx + 1));
+    document.getElementById('btn-prev').addEventListener('click', () => updateSlide(currentIdx - 1));
+
+    document.getElementById('btn-toggle-notes').addEventListener('click', () => {
+      speakerDrawer.classList.toggle('open');
+    });
+
+    document.getElementById('btn-print').addEventListener('click', () => {
+      window.print();
+    });
+
+    document.getElementById('btn-fullscreen').addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
+    });
+
+    // Keyboard Shortcuts
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
+        e.preventDefault();
+        updateSlide(currentIdx + 1);
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        updateSlide(currentIdx - 1);
+      } else if (e.key.toLowerCase() === 'n') {
+        speakerDrawer.classList.toggle('open');
+      } else if (e.key.toLowerCase() === 'f') {
+        document.getElementById('btn-fullscreen').click();
+      }
+    });
+
+    // Touch Swipe for Mobile / Tablet presentation
+    let touchStartX = 0;
+    window.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+    }, false);
+
+    window.addEventListener('touchend', (e) => {
+      const touchEndX = e.changedTouches[0].screenX;
+      if (touchEndX < touchStartX - 50) {
+        updateSlide(currentIdx + 1);
+      } else if (touchEndX > touchStartX + 50) {
+        updateSlide(currentIdx - 1);
+      }
+    }, false);
+
+    // Initial setup
+    updateSlide(0);
+  </script>
+</body>
+</html>
