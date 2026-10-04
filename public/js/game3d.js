@@ -232,6 +232,10 @@ const Game3D = {
           this.boardGroupEl.setAttribute('rotation', '-90 0 0');
           this.boardGroupEl.setAttribute('scale', '1 1 1');
           this.boardGroupEl.setAttribute('visible', 'true');
+          if (this.boardGroupEl.object3D) {
+            this.boardGroupEl.object3D.position.set(0, 0, 0.01);
+            this.boardGroupEl.object3D.rotation.set(-Math.PI / 2, 0, 0);
+          }
         }
 
         this.currentMode = 'ar';
@@ -433,14 +437,19 @@ const Game3D = {
       // กระดานนอนราบบนมาร์กเกอร์ หน้ากระดานขึ้น (rotation -90 0 0)
       this.boardGroupEl.setAttribute('rotation', '-90 0 0');
 
-      // หมุนรอบ Y-axis (แกนตั้งหลังหมุน -90 X) = หมุนรอบแกนตั้งของโลก
-      // Y 180 = ผู้เล่นขาว (แถว 7 ใกล้กล้อง), Y 0 = ผู้เล่นดำ (แถว 0 ใกล้กล้อง)
-      // การหมุน Y ไม่พลิก X-axis จึงไม่กลับด้านกระจก
+      // หมุนรอบ Z-axis ของมาร์กเกอร์ (Z 180 = ผู้เล่นขาว แถว 7 อยู่ใกล้ตัว, Z 0 = ผู้เล่นดำ แถว 0 อยู่ใกล้ตัว)
+      // ห้ามหมุนแกน Y เด็ดขาดเพราะจะทำให้กระดานพลิกคว่ำเข้าด้านใน (-Z)
       if (this.orientWrapperEl) {
         if (color === 'b') {
           this.orientWrapperEl.setAttribute('rotation', '0 0 0');
+          if (this.orientWrapperEl.object3D) {
+            this.orientWrapperEl.object3D.rotation.set(0, 0, 0);
+          }
         } else {
-          this.orientWrapperEl.setAttribute('rotation', '0 180 0');
+          this.orientWrapperEl.setAttribute('rotation', '0 0 180');
+          if (this.orientWrapperEl.object3D) {
+            this.orientWrapperEl.object3D.rotation.set(0, 0, Math.PI);
+          }
         }
       }
     } else {
