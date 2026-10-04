@@ -111,15 +111,13 @@ const Game3D = {
         if (this.arTargetEl.object3D) this.arTargetEl.object3D.visible = true;
       }
 
-      // [ข้อ 1 & 2] กระดานและตัวหมาก
+      // [ข้อ 1 & 2] กระดานและกลุ่มตัวหมาก
       if (this.boardGroupEl) {
         this.boardGroupEl.setAttribute('visible', 'true');
-        if (this.boardGroupEl.object3D) {
-          this.boardGroupEl.object3D.visible = true;
-          this.boardGroupEl.object3D.traverse((child) => {
-            child.visible = true;
-          });
-        }
+        if (this.boardGroupEl.object3D) this.boardGroupEl.object3D.visible = true;
+        if (this.tilesGroupEl && this.tilesGroupEl.object3D) this.tilesGroupEl.object3D.visible = true;
+        if (this.piecesGroupEl && this.piecesGroupEl.object3D) this.piecesGroupEl.object3D.visible = true;
+        if (this.highlightsGroupEl && this.highlightsGroupEl.object3D) this.highlightsGroupEl.object3D.visible = true;
       }
 
       if (this.onTargetStatusChange) {
@@ -698,14 +696,7 @@ const Game3D = {
       // [ข้อ 4] โมเดลฮอส (King) ทรงสูง 2 ชั้น พร้อมมงกุฎทองคำ
       // ─────────────────────────────────────────────────────────────
 
-      // 1. Invisible Hit Collider ครอบสูงขึ้นเพื่อให้แตะติดง่าย
-      const hitGeom = new THREE.CylinderGeometry(this.pieceRadius * 1.35, this.pieceRadius * 1.35, 0.075, 16);
-      const hitMat = new THREE.MeshBasicMaterial({ visible: false, transparent: true, opacity: 0 });
-      const hitMesh = new THREE.Mesh(hitGeom, hitMat);
-      hitMesh.position.set(0, -0.010, 0);
-      pieceGroup.add(hitMesh);
-
-      // 2. ฐานชั้นล่าง (Tier 1 Cylinder)
+      // 1. ฐานชั้นล่าง (Tier 1 Cylinder)
       const t1Geom = new THREE.CylinderGeometry(this.pieceRadius, this.pieceRadius, 0.016, 32);
       const t1Mat = new THREE.MeshStandardMaterial({
         color: isWhite ? 0xffffff : 0x0b0f19,
@@ -802,13 +793,7 @@ const Game3D = {
       // เบี้ยธรรมดา (Single Tier Pawn)
       // ─────────────────────────────────────────────────────────────
 
-      // 1. Invisible Hit Collider
-      const hitGeom = new THREE.CylinderGeometry(this.pieceRadius * 1.35, this.pieceRadius * 1.35, this.pieceHeight * 2.5, 16);
-      const hitMat = new THREE.MeshBasicMaterial({ visible: false, transparent: true, opacity: 0 });
-      const hitMesh = new THREE.Mesh(hitGeom, hitMat);
-      pieceGroup.add(hitMesh);
-
-      // 2. ทรงกระบอกตัวหมากหลัก
+      // 1. ทรงกระบอกตัวหมากหลัก
       const cylGeom = new THREE.CylinderGeometry(this.pieceRadius, this.pieceRadius, this.pieceHeight, 32);
       const cylMat = new THREE.MeshStandardMaterial({
         color: isWhite ? 0xf8fafc : 0x0f172a,
