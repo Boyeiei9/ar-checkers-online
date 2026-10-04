@@ -482,6 +482,11 @@ const Game3D = {
 
     if (!this.piecesGroupEl) return;
     this.piecesGroupEl.innerHTML = '';
+    if (this.piecesGroupEl.object3D) {
+      while (this.piecesGroupEl.object3D.children.length > 0) {
+        this.piecesGroupEl.object3D.remove(this.piecesGroupEl.object3D.children[0]);
+      }
+    }
     this.pieceEntities = {};
 
     for (let r = 0; r < 8; r++) {
@@ -841,6 +846,7 @@ const Game3D = {
       metalness: 0.5,
       transparent: true,
       opacity: 0,
+      depthWrite: false,
       side: THREE.DoubleSide
     });
     const glowMesh = new THREE.Mesh(glowGeom, glowMat);
@@ -1103,7 +1109,7 @@ const Game3D = {
 
       // Invisible Hit Collider สำหรับช่องไฮไลต์
       const hitGeom = new THREE.CylinderGeometry(this.pieceRadius * 1.35, this.pieceRadius * 1.35, 0.04, 16);
-      const hitMat = new THREE.MeshBasicMaterial({ visible: false, transparent: true, opacity: 0 });
+      const hitMat = new THREE.MeshBasicMaterial({ visible: false, transparent: true, opacity: 0, depthWrite: false });
       const hitMesh = new THREE.Mesh(hitGeom, hitMat);
       hl.setObject3D('hit', hitMesh);
 
